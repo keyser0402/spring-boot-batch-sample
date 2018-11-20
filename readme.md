@@ -1,81 +1,107 @@
 # Spring Boot Batch Sample
 
-## Comportement
-   * Lire les données du fichier importé
-   * Écrire des données dans la base de données
-   * Lire les données de la base de données
-   * Envoyer un mail à l'adresse email de données
-## Vue d'ensemble
-   * Utilisation de Velocity comme modèle du corps du courrier
-    ** Le modèle est lu à partir de la base de données
-    ** Pour les données initiales, reportez-vous au fichier de migration de flyway (package db.migration).
+# Opération
 
-## Exécution
-   * La préparation
-   * Créer un fichier capturé
-   * src / resources / sample-data.csv
+* Lire les données du fichier capturé
+* Ecrire des données dans la base de données
+* Lire les données de la base de données
+* Envoyer un mail à l'adresse mail
 
-tarou, yamada, yamada @ exemple.com
-Hanako, Yamada, Yamada @ exemple.com
-Changer le paramètre SMTP
-Le paramètre SMTP est src / resources / application.yml
-FakeSMTP est utile pour les tests.
+# Vue d'ensemble
 
-Compiler et tester
+* Velocity est utilisé comme modèle du corps du mail
+    * Le modèle est lu à partir de la base de données.
+    * Pour les données initiales, reportez-vous au fichier de migration de flyway (package db.migration).
+
+# Run
+
+# Préparation
+
+* Créer un fichier d'importation
+
+src / resources / sample-data.csv
+
+    tarou, yamada, yamada @ exemple.com
+    Hanako, Yamada, Yamada @ exemple.com
+
+* Modifier les paramètres SMTP
+    * Le paramètre SMTP est src / resources / application.yml
+
+Pour les tests, [FakeSMTP] (http://nilhcem.github.io/FakeSMTP/index.html) est utile.
+
+## Compiler & Test
+
 Exécutez les opérations suivantes dans le répertoire de base du projet
 
-Gradlew
-Activation
+    Gradlew
+
+## démarrage
+
 Exécutez les opérations suivantes dans le répertoire de base du projet
 
-gradlew bootRun - Pargs = "- job sendMailJob"
+    gradlew bootRun - Pargs = "- job sendMailJob"
+
 Ou appelez directement build / libs / spring-boot-batch-sample.jar
 
-java - jar spring - démarrage - lot - échantillon.jar - travail sendMailJob
-Erreur
+    java - jar spring - démarrage - lot - échantillon.jar - travail sendMailJob
+
+erreur ##
+
 Si un redémarrage est requis en raison d’une erreur ou d’une erreur similaire, la réexécution est effectuée à partir de l’endroit où la dernière erreur s’est produite en exécutant les opérations suivantes:
 
-gradlew bootRun - Pargs = "- job sendMailJob - restart"
-java - jar spring - démarrage - lot - échantillon.jar - travail sendMailJob - redémarrage
-Lancement de la ligne de commande Spring-Boot-Batch
-Exécution en ligne de commande par défaut
-Dans cet exemple, CommandLineRunner est implémenté par lui-même et l'exécution en ligne de commande est exécutée.
+    gradlew bootRun - Pargs = "- job sendMailJob - restart"
+    java - jar spring - démarrage - lot - échantillon.jar - travail sendMailJob - redémarrage
+
+## Lancement en ligne de commande de Spring-Boot-Batch
+
+### Exécution par défaut de la ligne de commande
+
+Dans cet exemple, CommandLineRunner est implémenté par lui-même et l'exécution de la ligne de commande est exécutée.
 
 Dans SpringBoot - Batch, une méthode (JobLauncherCommandLineRunner) doit être exécutée à partir de la ligne de commande par défaut.
 
-Procédure d'exécution
-Définissez spring.batch.job.enabled dans application.yml sur true
-Comment out @ Composant de sample.CommandLineBatch (non soumis à DI)
-Construire avec "test gradlew -x" (test sautant car il échoue)
+### Procédure d'exécution
+
+* Changement de spring.batch.job.enabled dans application.yml en true
+* Commentez @ Composant de Command.CommandLineBatch (non soumis à DI)
+* Construire avec "test gradlew -x" (test sautant car il échoue)
+
 Lorsque vous exécutez les opérations suivantes, tous les travaux enregistrés par @EnableBatchProcessing (sendMailJob, conditionalJob) sont exécutés.
 
-java - jar spring - démarrage - lot - échantillon.jar temps (long) = 1
+    java - jar spring - démarrage - lot - échantillon.jar temps (long) = 1
+
 Le nom du travail peut également être spécifié et exécuté individuellement ci-dessous.
 
-java - jar spring - boot - batch - sample.jar - spring.batch.job.names = sendMailJob time (long) = 1
+    java - jar spring - boot - batch - sample.jar - spring.batch.job.names = sendMailJob time (long) = 1
+
 Spring.batch.job.names peut spécifier plusieurs travaux séparés par des virgules.
 
-java - jar spring - boot - batch - sample.jar - spring.batch.job.names = sendMailJob, conditionnelJob time (long) = 1
-Paramètres d'argument
+    java - jar spring - boot - batch - sample.jar - spring.batch.job.names = sendMailJob, conditionnelJob time (long) = 1
+
+### Paramètres paramètres
+
 La propriété (dans l'exemple "partie" time (long) = 1 ") peut être saisie ci-dessous.
 
-(long)
-(chaîne)
-(date)
-(double)
+* (long)
+* (chaîne)
+* (date)
+* (double)
+
 Le travail exécuté par JobLauncherCommandLineRunner est ajouté avec run.id en tant que paramètre.
 
 Étant donné que run.id est incrémenté chaque fois que l'exécution d'un lot est exécutée, le SpringBatch "Le travail du même paramètre n'est pas réexécuté" est évité.
 
-Configuration et exécution d'un travail
+[Configuration et exécution d'un travail] (http://docs.spring.io/spring-batch/trunk/reference/html/configureJob.html#restartability)
 
-Ré-exécuter le job d'erreur
+### Error Ré-exécution du job
+
 Si le résultat de l'exécution précédente est une erreur (STOP ou FAILED) et que les paramètres sont identiques, il sera réexécuté.
 
 Par exemple, si "time (long) = 1" est démarré et qu’une erreur se produit dans insertDataStep
 
-taskletlStep -> insertDataStep (erreur) -> sendMailStep
-Réexécutez avec le paramètre "time (long) = 1"
-Run.id est identique et reprend où l'erreur insertDataStep s'est produite
-Exécuter avec le paramètre "time (long) = 2"
-Run.id est le même, mais un nouveau départ à partir de taskletlStep
+    taskletlStep -> insertDataStep (erreur) -> sendMailStep
+
+* Réexécutez avec le paramètre "time (long) = 1"
+    * run.id est identique et redémarré à partir duquel l'erreur insertDataStep s'est produite
+* Exécution avec le paramètre "time (long) = 2"
+    * run.id est identique, mais il a été démarré depuis taskletlStep
