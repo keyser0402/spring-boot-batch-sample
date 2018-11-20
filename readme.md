@@ -1,107 +1,81 @@
 # Spring Boot Batch Sample
 
-# 動作
+## Comportement
+   * Lire les données du fichier importé
+   * Écrire des données dans la base de données
+   * Lire les données de la base de données
+   * Envoyer un mail à l'adresse email de données
+## Vue d'ensemble
+   * Utilisation de Velocity comme modèle du corps du courrier
+    ** Le modèle est lu à partir de la base de données
+    ** Pour les données initiales, reportez-vous au fichier de migration de flyway (package db.migration).
 
-* 取込ファイルからデータを読み込む
-* データをDBへ書き込み
-* データをDBから読み込み
-* データのメールアドレスにメールを送信
+## Exécution
+   * La préparation
+   * Créer un fichier capturé
+   * src / resources / sample-data.csv
 
-# 概要
+tarou, yamada, yamada @ exemple.com
+Hanako, Yamada, Yamada @ exemple.com
+Changer le paramètre SMTP
+Le paramètre SMTP est src / resources / application.yml
+FakeSMTP est utile pour les tests.
 
-* メール本文のテンプレートはVelocityを使用
-    * テンプレートはDBから読み込んでいる
-    * 初期データはflywayのマイグレーションファイルを参照(db.migrationパッケージ)
+Compiler et tester
+Exécutez les opérations suivantes dans le répertoire de base du projet
 
-# 実行
+Gradlew
+Activation
+Exécutez les opérations suivantes dans le répertoire de base du projet
 
-## 準備
+gradlew bootRun - Pargs = "- job sendMailJob"
+Ou appelez directement build / libs / spring-boot-batch-sample.jar
 
-* 取込ファイルを作成
+java - jar spring - démarrage - lot - échantillon.jar - travail sendMailJob
+Erreur
+Si un redémarrage est requis en raison d’une erreur ou d’une erreur similaire, la réexécution est effectuée à partir de l’endroit où la dernière erreur s’est produite en exécutant les opérations suivantes:
 
-src/resources/sample-data.csv
+gradlew bootRun - Pargs = "- job sendMailJob - restart"
+java - jar spring - démarrage - lot - échantillon.jar - travail sendMailJob - redémarrage
+Lancement de la ligne de commande Spring-Boot-Batch
+Exécution en ligne de commande par défaut
+Dans cet exemple, CommandLineRunner est implémenté par lui-même et l'exécution en ligne de commande est exécutée.
 
-    tarou,yamada,yamada@example.com
-    hanako,yamada,yamada@example.com
+Dans SpringBoot - Batch, une méthode (JobLauncherCommandLineRunner) doit être exécutée à partir de la ligne de commande par défaut.
 
-* SMTP設定を変更
-    * SMTP設定はsrc/resources/application.yml
+Procédure d'exécution
+Définissez spring.batch.job.enabled dans application.yml sur true
+Comment out @ Composant de sample.CommandLineBatch (non soumis à DI)
+Construire avec "test gradlew -x" (test sautant car il échoue)
+Lorsque vous exécutez les opérations suivantes, tous les travaux enregistrés par @EnableBatchProcessing (sendMailJob, conditionalJob) sont exécutés.
 
-テスト用には[FakeSMTP](http://nilhcem.github.io/FakeSMTP/index.html)が便利です。
+java - jar spring - démarrage - lot - échantillon.jar temps (long) = 1
+Le nom du travail peut également être spécifié et exécuté individuellement ci-dessous.
 
-## コンパイル&テスト
+java - jar spring - boot - batch - sample.jar - spring.batch.job.names = sendMailJob time (long) = 1
+Spring.batch.job.names peut spécifier plusieurs travaux séparés par des virgules.
 
-プロジェクトのホームディレクトリで以下を実行
+java - jar spring - boot - batch - sample.jar - spring.batch.job.names = sendMailJob, conditionnelJob time (long) = 1
+Paramètres d'argument
+La propriété (dans l'exemple "partie" time (long) = 1 ") peut être saisie ci-dessous.
 
-    gradlew
+(long)
+(chaîne)
+(date)
+(double)
+Le travail exécuté par JobLauncherCommandLineRunner est ajouté avec run.id en tant que paramètre.
 
-## 起動
+Étant donné que run.id est incrémenté chaque fois que l'exécution d'un lot est exécutée, le SpringBatch "Le travail du même paramètre n'est pas réexécuté" est évité.
 
-プロジェクトのホームディレクトリで以下を実行
+Configuration et exécution d'un travail
 
-    gradlew bootRun -Pargs="-job sendMailJob"
+Ré-exécuter le job d'erreur
+Si le résultat de l'exécution précédente est une erreur (STOP ou FAILED) et que les paramètres sont identiques, il sera réexécuté.
 
-もしくはbuild/libs/spring-boot-batch-sample.jarを直接起動
+Par exemple, si "time (long) = 1" est démarré et qu’une erreur se produit dans insertDataStep
 
-    java -jar spring-boot-batch-sample.jar -job sendMailJob
-
-## エラー
-
-エラー等でリスタートが必要な場合、以下を実行することで最新のエラーが発生した箇所から再実行される
-
-    gradlew bootRun -Pargs="-job sendMailJob -restart"
-    java -jar spring-boot-batch-sample.jar -job sendMailJob -restart
-
-## Spring-Boot-Batchのコマンドライン起動
-
-### デフォルトコマンドライン実行
-
-このサンプルではCommandLineRunnerを独自実装してコマンドライン実行をしています。
-
-SpringBoot-Batchではデフォルトでコマンドラインから実行する方法(JobLauncherCommandLineRunner)があります。
-
-### 実行手順
-
-* application.ymlのspring.batch.job.enabledをtrueに変更
-* sample.CommandLineBatchの@Componentをコメントアウト（DI対象外）
-* 「gradlew -x test」でビルド(失敗するのでテストはスキップ)
-
-以下を実行すると@EnableBatchProcessingで登録されている全てのjob(sendMailJob, conditionalJob)が実行されます。
-
-    java -jar spring-boot-batch-sample.jar time(long)=1
-
-以下でJob名を個別指定して実行も可能です。
-
-    java -jar spring-boot-batch-sample.jar --spring.batch.job.names=sendMailJob time(long)=1
-
-spring.batch.job.namesはカンマ区切りで複数のJobの指定が可能です。
-
-    java -jar spring-boot-batch-sample.jar --spring.batch.job.names=sendMailJob,conditionalJob time(long)=1
-
-### 引数のパラメータ
-
-プロパティ(例では「time(long)=1」部分)は以下で型指定が可能です。
-
-* (long)
-* (string)
-* (date)
-* (double)
-
-JobLauncherCommandLineRunnerで実行されたjobはパラメータとしてrun.idが付加されます。
-
-run.idはバッチ実行毎にインクリメントされるのでSpringBatchの「同パラメータのJobは再実行されない」が回避されることになります。
-
-[Configuring and Running a Job](http://docs.spring.io/spring-batch/trunk/reference/html/configureJob.html#restartability)
-
-### エラーJobの再実行
-
-直前の実行結果がエラー(STOP or FAILED)の場合でパラメータが同じ場合は再実行されます。
-
-例として「time(long)=1」で起動し、insertDataStepでエラーが発生した場合
-
-    taskletlStep -> insertDataStep（エラー）-> sendMailStep
-
-* 再度「time(long)=1」パラメータで実行
-    * run.idは同じでinsertDataStepのエラーになった箇所から再開
-* 「time(long)=2」パラメータで実行
-    * run.idは同じだがtaskletlStepから新規で起動
+taskletlStep -> insertDataStep (erreur) -> sendMailStep
+Réexécutez avec le paramètre "time (long) = 1"
+Run.id est identique et reprend où l'erreur insertDataStep s'est produite
+Exécuter avec le paramètre "time (long) = 2"
+Run.id est le même, mais un nouveau départ à partir de taskletlStep
