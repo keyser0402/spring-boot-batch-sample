@@ -99,7 +99,7 @@ Si le résultat de l'exécution précédente est une erreur (STOP ou FAILED) et 
 
 Par exemple, si "time(long)=1" est démarré et qu’une erreur se produit dans insertDataStep
 
-    taskletlStep -> insertDataStep (erreur) -> sendMailStep
+    taskletlStep -> insertDataStep (error) -> sendMailStep
 
 * Réexécutez avec le paramètre "time(long)=1"
     * run.id est identique et redémarré à partir duquel l'erreur insertDataStep s'est produite
